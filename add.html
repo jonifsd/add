@@ -34,6 +34,7 @@
             border: none;
             cursor: pointer;
             border-radius: 5px;
+            margin: 5px;
         }
         button:hover {
             background-color: #0056b3;
@@ -48,6 +49,24 @@
             padding: 10px;
             background-color: #e9ecef;
             border-radius: 5px;
+            cursor: pointer;
+        }
+        .message.selected {
+            background-color: #007BFF;
+            color: #fff;
+        }
+        .delete-btn, .delete-all-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #FF0000;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 5px;
+        }
+        .delete-btn:hover, .delete-all-btn:hover {
+            background-color: #cc0000;
         }
     </style>
 </head>
@@ -56,6 +75,8 @@
         <input type="text" id="inputText" placeholder="כתוב כאן...">
         <br>
         <button onclick="addText()">לחץ</button>
+        <button class="delete-btn" onclick="deleteSelected()">מחק נבחר</button>
+        <button class="delete-all-btn" onclick="deleteAll()">מחק הכל</button>
         <div id="output"></div>
     </div>
     <script>
@@ -66,10 +87,12 @@
         function loadMessages() {
             const messages = JSON.parse(localStorage.getItem('messages')) || [];
             const outputDiv = document.getElementById('output');
-            messages.forEach(message => {
+            messages.forEach((message, index) => {
                 var newMessage = document.createElement('div');
                 newMessage.className = 'message';
                 newMessage.innerText = message;
+                newMessage.setAttribute('data-index', index);
+                newMessage.addEventListener('click', selectMessage);
                 outputDiv.appendChild(newMessage);
             });
         }
@@ -81,6 +104,8 @@
                 var newMessage = document.createElement('div');
                 newMessage.className = 'message';
                 newMessage.innerText = text;
+                newMessage.setAttribute('data-index', outputDiv.children.length);
+                newMessage.addEventListener('click', selectMessage);
                 outputDiv.appendChild(newMessage);
                 saveMessage(text);
                 document.getElementById('inputText').value = ""; // Clear the input field
@@ -91,6 +116,39 @@
             const messages = JSON.parse(localStorage.getItem('messages')) || [];
             messages.push(message);
             localStorage.setItem('messages', JSON.stringify(messages));
+        }
+
+        function selectMessage(event) {
+            var messages = document.querySelectorAll('.message');
+            messages.forEach(message => message.classList.remove('selected'));
+            event.target.classList.add('selected');
+        }
+
+        function deleteSelected() {
+            var selectedMessage = document.querySelector('.message.selected');
+            if (selectedMessage) {
+                var index = selectedMessage.getAttribute('data-index');
+                selectedMessage.remove();
+                deleteMessage(index);
+            }
+        }
+
+        function deleteMessage(index) {
+            let messages = JSON.parse(localStorage.getItem('messages')) || [];
+            messages.splice(index, 1);
+            localStorage.setItem('messages', JSON.stringify(messages));
+            refreshMessages();
+        }
+
+        function deleteAll() {
+            localStorage.removeItem('messages');
+            refreshMessages();
+        }
+
+        function refreshMessages() {
+            const outputDiv = document.getElementById('output');
+            outputDiv.innerHTML = '';
+            loadMessages();
         }
     </script>
 </body>
