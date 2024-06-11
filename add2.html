@@ -31,6 +31,7 @@
         if(localStorage.getItem("savedText")) {
             textList.innerHTML = localStorage.getItem("savedText");
         }
+        addSavedText(); // נוסיף את הטקסט המועדף מה-localStorage לתוך הדף
     }
 
     function addText() {
@@ -40,6 +41,13 @@
         textList.appendChild(newParagraph);
         saveText();
         textInput.value = "";
+    }
+
+    function addSavedText() {
+        var savedText = localStorage.getItem("savedText");
+        if(savedText) {
+            textList.innerHTML = savedText;
+        }
     }
 
     function saveText() {
