@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>הוספת תיבות טקסט</title>
+<style>
+    #container {
+        text-align: center;
+        margin-top: 50px;
+    }
+    #addButton {
+        margin-top: 20px;
+    }
+</style>
+</head>
+<body>
+
+<div id="container">
+    <input type="text" id="textInput" placeholder="הקלד כאן">
+    <button id="addButton">הוסף</button>
+    <div id="textList"></div>
+</div>
+
+<script>
+    // קבועים לזיהוי אובייקטים ב-HTML
+    var textInput = document.getElementById("textInput");
+    var addButton = document.getElementById("addButton");
+    var textList = document.getElementById("textList");
+
+    // טעינת הטקסט מה-LocalStorage
+    window.onload = function() {
+        if(localStorage.getItem("savedText")) {
+            textList.innerHTML = localStorage.getItem("savedText");
+        }
+    }
+
+    // פונקציה להוספת טקסט לרשימה
+    function addText() {
+        var newText = textInput.value;
+        var newParagraph = document.createElement("p");
+        newParagraph.textContent = newText;
+        textList.appendChild(newParagraph);
+        saveText(); // שמירת הטקסט ב-LocalStorage
+        textInput.value = ""; // לאפס את תיבת הטקסט לאחר הוספה
+    }
+
+    // פונקציה לשמירת הטקסט ב-LocalStorage
+    function saveText() {
+        localStorage.setItem("savedText", textList.innerHTML);
+    }
+
+    // הוספת אירוע לחיצה על הכפתור
+    addButton.addEventListener("click", addText);
+
+</script>
+
+</body>
+</html>
