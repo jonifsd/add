@@ -79,43 +79,54 @@
         <button class="delete-all-btn" onclick="deleteAll()">מחק הכל</button>
         <div id="output"></div>
     </div>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js"></script>
     <script>
+        // Firebase configuration
+        const firebaseConfig = {
+  apiKey: "AIzaSyARhOhoCrP9Nj1yIicchTm0_7OOQSnybFs",
+  authDomain: "project1-7b2c4.firebaseapp.com",
+  projectId: "project1-7b2c4",
+  storageBucket: "project1-7b2c4.appspot.com",
+  messagingSenderId: "1045475748807",
+  appId: "1:1045475748807:web:82ff3a3b6d8d60c0a607e2",
+  measurementId: "G-0096M24DVE"
+};
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
         document.addEventListener('DOMContentLoaded', (event) => {
             loadMessages();
         });
 
         function loadMessages() {
-            const messages = JSON.parse(localStorage.getItem('messages')) || [];
-            const outputDiv = document.getElementById('output');
-            messages.forEach((message, index) => {
-                var newMessage = document.createElement('div');
-                newMessage.className = 'message';
-                newMessage.innerText = message;
-                newMessage.setAttribute('data-index', index);
-                newMessage.addEventListener('click', selectMessage);
-                outputDiv.appendChild(newMessage);
+            db.collection('messages').orderBy('timestamp').get().then((querySnapshot) => {
+                const outputDiv = document.getElementById('output');
+                outputDiv.innerHTML = '';
+                querySnapshot.forEach((doc) => {
+                    var newMessage = document.createElement('div');
+                    newMessage.className = 'message';
+                    newMessage.innerText = doc.data().text;
+                    newMessage.setAttribute('data-id', doc.id);
+                    newMessage.addEventListener('click', selectMessage);
+                    outputDiv.appendChild(newMessage);
+                });
             });
         }
 
         function addText() {
             var text = document.getElementById('inputText').value;
             if (text.trim() !== "") {
-                var outputDiv = document.getElementById('output');
-                var newMessage = document.createElement('div');
-                newMessage.className = 'message';
-                newMessage.innerText = text;
-                newMessage.setAttribute('data-index', outputDiv.children.length);
-                newMessage.addEventListener('click', selectMessage);
-                outputDiv.appendChild(newMessage);
-                saveMessage(text);
+                db.collection('messages').add({
+                    text: text,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                }).then(() => {
+                    loadMessages();
+                });
                 document.getElementById('inputText').value = ""; // Clear the input field
             }
-        }
-
-        function saveMessage(message) {
-            const messages = JSON.parse(localStorage.getItem('messages')) || [];
-            messages.push(message);
-            localStorage.setItem('messages', JSON.stringify(messages));
         }
 
         function selectMessage(event) {
@@ -127,28 +138,20 @@
         function deleteSelected() {
             var selectedMessage = document.querySelector('.message.selected');
             if (selectedMessage) {
-                var index = selectedMessage.getAttribute('data-index');
-                selectedMessage.remove();
-                deleteMessage(index);
+                var id = selectedMessage.getAttribute('data-id');
+                db.collection('messages').doc(id).delete().then(() => {
+                    loadMessages();
+                });
             }
         }
 
-        function deleteMessage(index) {
-            let messages = JSON.parse(localStorage.getItem('messages')) || [];
-            messages.splice(index, 1);
-            localStorage.setItem('messages', JSON.stringify(messages));
-            refreshMessages();
-        }
-
         function deleteAll() {
-            localStorage.removeItem('messages');
-            refreshMessages();
-        }
-
-        function refreshMessages() {
-            const outputDiv = document.getElementById('output');
-            outputDiv.innerHTML = '';
-            loadMessages();
+            db.collection('messages').get().then((querySnapshot) => {
+                querySnapshot.forEach((doc) => {
+                    doc.ref.delete();
+                });
+                loadMessages();
+            });
         }
     </script>
 </body>
